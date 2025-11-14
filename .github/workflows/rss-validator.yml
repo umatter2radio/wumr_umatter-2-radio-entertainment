@@ -1,4 +1,3 @@
-# ...existing code...
 name: RSS Validator
 
 on:
@@ -43,6 +42,5 @@ jobs:
           if [ -z "$(fetch '//item/guid')" ]; then echo "Missing <guid> in episodes" >&2; exit 1; fi
           if [ -z "$(fetch '//channel/itunes:author')" ]; then echo "Missing <itunes:author>" >&2; exit 1; fi
           if [ -z "$(fetch '//channel/itunes:explicit')" ]; then echo "Missing <itunes:explicit>" >&2; exit 1; fi
-# ...existing code...
 
 
