@@ -1,0 +1,48 @@
+# ...existing code...
+name: RSS Validator
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Validate RSS feed syntax
+        run: |
+          set -euo pipefail
+          URL="https://umatter2radio.github.io/wumr/rss.xml"
+          if ! curl -fsS "https://validator.w3.org/feed/check.cgi?url=$URL" | grep -qi "This is a valid RSS feed"; then
+            echo "Remote RSS validator did not report valid feed" >&2
+            exit 1
+          fi
+
+      - name: Check podcast-specific tags
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y xmlstarlet
+          RSS_PATH="rss.xml"
+          if [ ! -f "$RSS_PATH" ]; then
+            echo "$RSS_PATH not found in repo root" >&2
+            exit 1
+          fi
+          ITUNES_NS="http://www.itunes.com/dtds/podcast-1.0.dtd"
+          fetch() {
+            val=$(xmlstarlet sel -N itunes="$ITUNES_NS" -t -v "$1" "$RSS_PATH" 2>/dev/null || true)
+            echo "${val}" | tr -d '[:space:]'
+          }
+          if [ -z "$(fetch '//channel/itunes:image/@href')" ]; then echo "Missing <itunes:image>" >&2; exit 1; fi
+          if [ -z "$(fetch '//item/enclosure/@url')" ]; then echo "Missing <enclosure> in episodes" >&2; exit 1; fi
+          if [ -z "$(fetch '//item/guid')" ]; then echo "Missing <guid> in episodes" >&2; exit 1; fi
+          if [ -z "$(fetch '//channel/itunes:author')" ]; then echo "Missing <itunes:author>" >&2; exit 1; fi
+          if [ -z "$(fetch '//channel/itunes:explicit')" ]; then echo "Missing <itunes:explicit>" >&2; exit 1; fi
+# ...existing code...
+
+
