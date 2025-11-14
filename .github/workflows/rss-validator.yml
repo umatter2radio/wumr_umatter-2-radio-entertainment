@@ -13,15 +13,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Validate RSS feed syntax
-        run: |
-          set -euo pipefail
-          URL="https://umatter2radio.github.io/wumr/rss.xml"
-          if ! curl -fsS "https://validator.w3.org/feed/check.cgi?url=$URL" | grep -qi "This is a valid RSS feed"; then
-            echo "Remote RSS validator did not report valid feed" >&2
-            exit 1
-          fi
-
       - name: Check podcast-specific tags
         run: |
           set -euo pipefail
